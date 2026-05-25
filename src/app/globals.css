@@ -1,0 +1,162 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Premium Violet Light Mode with soft pink highlights */
+  --background: oklch(0.98 0.01 290);
+  --foreground: oklch(0.16 0.02 290);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.02 290);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.02 290);
+  --primary: oklch(0.55 0.22 290); /* Premium Violet */
+  --primary-foreground: oklch(0.98 0.01 290);
+  --secondary: oklch(0.94 0.01 290);
+  --secondary-foreground: oklch(0.16 0.02 290);
+  --muted: oklch(0.94 0.01 290);
+  --muted-foreground: oklch(0.50 0.02 290);
+  --accent: oklch(0.94 0.01 290);
+  --accent-foreground: oklch(0.16 0.02 290);
+  --destructive: oklch(0.58 0.20 27);
+  --border: oklch(0.90 0.01 290);
+  --input: oklch(0.90 0.01 290);
+  --ring: oklch(0.55 0.22 290);
+  --chart-1: oklch(0.55 0.22 290);
+  --chart-2: oklch(0.60 0.25 330);
+  --chart-3: oklch(0.70 0.20 300);
+  --chart-4: oklch(0.40 0.15 280);
+  --chart-5: oklch(0.30 0.10 290);
+  --radius: 1rem; /* High-end rounded corners */
+  --sidebar: oklch(0.975 0.01 290);
+  --sidebar-foreground: oklch(0.16 0.02 290);
+  --sidebar-primary: oklch(0.55 0.22 290);
+  --sidebar-primary-foreground: oklch(0.98 0.01 290);
+  --sidebar-accent: oklch(0.94 0.01 290);
+  --sidebar-accent-foreground: oklch(0.16 0.02 290);
+  --sidebar-border: oklch(0.90 0.01 290);
+  --sidebar-ring: oklch(0.55 0.22 290);
+}
+
+.dark {
+  /* Highly dramatic, ultra-premium Dark TechSummit 2032 theme */
+  --background: oklch(0.10 0.01 290); /* Extremely dark charcoal-violet (#0c0914) */
+  --foreground: oklch(0.98 0.005 290); /* Crisp clean white */
+  --card: oklch(0.14 0.02 290); /* Muted glassmorphic dark purple cards (#131020) */
+  --card-foreground: oklch(0.98 0.005 290);
+  --popover: oklch(0.14 0.02 290);
+  --popover-foreground: oklch(0.98 0.005 290);
+  --primary: oklch(0.60 0.25 290); /* High-luminance Indigo/Violet (#8b5cf6) */
+  --primary-foreground: oklch(0.98 0.005 290);
+  --secondary: oklch(0.18 0.02 290);
+  --secondary-foreground: oklch(0.90 0.01 290);
+  --muted: oklch(0.18 0.02 290);
+  --muted-foreground: oklch(0.70 0.02 290);
+  --accent: oklch(0.18 0.02 290);
+  --accent-foreground: oklch(0.98 0.005 290);
+  --destructive: oklch(0.55 0.22 27);
+  --border: oklch(1 0 0 / 6%); /* High-end ultra-thin border */
+  --input: oklch(1 0 0 / 8%);
+  --ring: oklch(0.60 0.25 290);
+  --chart-1: oklch(0.60 0.25 290); /* Indigo */
+  --chart-2: oklch(0.65 0.25 330); /* Rose Pink */
+  --chart-3: oklch(0.75 0.18 300); /* Purple */
+  --chart-4: oklch(0.50 0.15 280);
+  --chart-5: oklch(0.35 0.10 290);
+  --sidebar: oklch(0.11 0.01 290); /* Fully integrated deep sidebar */
+  --sidebar-foreground: oklch(0.90 0.01 290);
+  --sidebar-primary: oklch(0.60 0.25 290);
+  --sidebar-primary-foreground: oklch(0.98 0.005 290);
+  --sidebar-accent: oklch(0.16 0.02 290);
+  --sidebar-accent-foreground: oklch(0.98 0.005 290);
+  --sidebar-border: oklch(1 0 0 / 6%);
+  --sidebar-ring: oklch(0.60 0.25 290);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+  html, body, [data-slot="sidebar-wrapper"] {
+    @apply text-foreground relative;
+    background-image: 
+      radial-gradient(circle at -5% 30%, oklch(0.32 0.16 290 / 25%), transparent 45%),   /* Violet-indigo aura on left */
+      radial-gradient(circle at 105% 70%, oklch(0.28 0.18 340 / 22%), transparent 42%),   /* Rose-crimson aura on right */
+      linear-gradient(to right, oklch(1 0 0 / 1.5%) 1px, transparent 1px),                /* Subtle developer grid paper */
+      linear-gradient(to bottom, oklch(1 0 0 / 1.5%) 1px, transparent 1px) !important;
+    background-size: 100% 100%, 100% 100%, 45px 45px, 45px 45px;
+    background-color: oklch(0.08 0.01 290) !important; /* Deep rich base charcoal-indigo black */
+    background-attachment: fixed;
+  }
+  html {
+    @apply font-sans h-full;
+  }
+}
+
+/* Beautiful Purple-to-Pink gradient text highlight matching "Technology" in the image */
+.text-gradient {
+  background: linear-gradient(135deg, #a78bfa, #f472b6); /* Smooth Violet to Rose Pink */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Rounded fully pill buttons styled exactly like "Get Tickets" button in the image */
+.btn-pill-gradient {
+  @apply rounded-full bg-gradient-to-r from-violet-600 to-pink-500 font-semibold text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.03] transition-all duration-300 active:scale-[0.98] border-none flex items-center justify-center;
+}
+
+/* Outline pill buttons matching "View Speakers" in the image */
+.btn-pill-outline {
+  @apply rounded-full border border-border/80 bg-transparent text-foreground hover:bg-white/5 hover:border-foreground/45 hover:scale-[1.03] transition-all duration-300 active:scale-[0.98] flex items-center justify-center font-medium;
+}
+
+/* Custom rounded full styles for badges and cards */
+.badge-pill-gradient {
+  @apply rounded-full bg-gradient-to-r from-violet-600/15 to-pink-500/15 text-pink-400 border border-pink-500/20 font-semibold px-3 py-0.5;
+}
