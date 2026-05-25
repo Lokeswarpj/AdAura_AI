@@ -103,6 +103,7 @@ export default function AdsPage() {
   const [writing, setWriting] = React.useState(false)
   const [generatedCopies, setGeneratedCopies] = React.useState<any[]>([])
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null)
+  const [isAiPowered, setIsAiPowered] = React.useState<boolean | null>(null)
 
   const handleCopyText = (text: string, idx: number) => {
     navigator.clipboard.writeText(text)
@@ -110,15 +111,35 @@ export default function AdsPage() {
     setTimeout(() => setCopiedIndex(null), 2000)
   }
 
-  const handleWriteCopy = (e: React.FormEvent) => {
+  const handleWriteCopy = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!productName.trim() || !coreBenefit.trim()) return
 
     setWriting(true)
     setGeneratedCopies([])
+    setIsAiPowered(null)
 
-    setTimeout(() => {
-      setWriting(false)
+    try {
+      const response = await fetch("/api/copywriter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productName, coreBenefit, copyTone }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to generate copies")
+      }
+
+      const data = await response.json()
+      setGeneratedCopies(data.copies || [])
+      setIsAiPowered(!!data.aiPowered)
+    } catch (err) {
+      console.error("AI copywriter generation error, falling back to mock copies:", err)
+      setIsAiPowered(false)
+      
+      // Standalone high-fidelity fallback copies
       if (copyTone === "direct") {
         setGeneratedCopies([
           {
@@ -159,7 +180,9 @@ export default function AdsPage() {
           }
         ])
       }
-    }, 2000)
+    } finally {
+      setWriting(false)
+    }
   }
 
   const filteredAds = ads.filter(ad => 
@@ -354,9 +377,24 @@ export default function AdsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mt-6 space-y-4 pt-6 border-t border-border/30"
                   >
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                      <Flame className="h-3.5 w-3.5" /> AI Optimized Formulas
-                    </h4>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                        <Flame className="h-3.5 w-3.5" /> AI Optimized Formulas
+                      </h4>
+                      {isAiPowered !== null && (
+                        <div>
+                          {isAiPowered ? (
+                            <Badge className="bg-emerald-500/10 text-emerald-400 border-none font-semibold text-[10px] py-0.5 px-2">
+                              ✨ Live Gemini AI Engine Active
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-indigo-500/10 text-indigo-400 border-none font-semibold text-[10px] py-0.5 px-2">
+                              💡 Mock Engine Active (Define GEMINI_API_KEY to go live)
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     
                     <div className="space-y-4">
                       {generatedCopies.map((copy, idx) => (
