@@ -29,6 +29,7 @@ import {
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { cn } from "@/lib/utils"
 
 const items = [
   {
@@ -96,15 +97,34 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu className="px-2 mt-4 space-y-1">
+        <SidebarMenu className="px-2 mt-4 space-y-1.5">
           {items.map((item) => {
             const isActive = pathname === item.url
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton isActive={isActive} tooltip={item.title} render={<Link href={item.url} />}>
-                  <div className="flex items-center gap-3">
-                    <item.icon className="size-4" />
-                    <span>{item.title}</span>
+                <SidebarMenuButton 
+                  isActive={isActive} 
+                  tooltip={item.title} 
+                  render={<Link href={item.url} />}
+                  className={cn(
+                    "transition-all duration-300 rounded-xl px-3 py-2.5 border border-transparent! relative overflow-hidden",
+                    isActive 
+                      ? "bg-gradient-to-r from-violet-600/20 via-purple-600/12 to-pink-600/6 text-foreground font-bold border-violet-500/40! shadow-md shadow-violet-500/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  )}
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    {isActive && (
+                      <span className="absolute left-0 top-[20%] bottom-[20%] w-[3px] rounded-r-md bg-gradient-to-b from-violet-400 via-purple-500 to-pink-400" />
+                    )}
+                    <item.icon className={cn(
+                      "size-4 shrink-0 transition-all duration-300",
+                      isActive ? "text-pink-400 drop-shadow-[0_0_6px_rgba(244,114,182,0.7)] scale-110" : "text-muted-foreground"
+                    )} />
+                    <span className={cn(
+                      "text-xs transition-colors duration-300",
+                      isActive ? "bg-gradient-to-r from-white via-purple-100 to-pink-100 bg-clip-text text-transparent font-extrabold" : ""
+                    )}>{item.title}</span>
                   </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
