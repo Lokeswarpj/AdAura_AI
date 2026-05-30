@@ -21,13 +21,19 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 
 export function AuthPortal() {
-  const { login, register } = useAuth()
-  const [tab, setTab] = React.useState<"login" | "signup">("login")
+  const { login, register, sendOtp, verifyOtpAndResetPassword } = useAuth()
+  const [tab, setTab] = React.useState<"login" | "signup" | "forgot">("login")
   
   // Input fields
   const [email, setEmail] = React.useState("")
   const [name, setName] = React.useState("")
   const [password, setPassword] = React.useState("")
+  
+  // Forgot Password / OTP Recovery States
+  const [forgotStep, setForgotStep] = React.useState<"email" | "otp">("email")
+  const [otp, setOtp] = React.useState("")
+  const [newPassword, setNewPassword] = React.useState("")
+  const [simulatedOtp, setSimulatedOtp] = React.useState("")
   
   // Feedback states
   const [errorMsg, setErrorMsg] = React.useState("")
@@ -42,6 +48,9 @@ export function AuthPortal() {
     setEmail("")
     setName("")
     setPassword("")
+    setOtp("")
+    setNewPassword("")
+    setForgotStep("email")
   }, [tab])
 
   const triggerShake = () => {
@@ -64,7 +73,7 @@ export function AuthPortal() {
           setErrorMsg(res.message)
           triggerShake()
         }
-      } else {
+      } else if (tab === "signup") {
         if (!name.trim()) {
           setErrorMsg("Full name is required")
           setIsLoading(false)
@@ -78,6 +87,42 @@ export function AuthPortal() {
         } else {
           setErrorMsg(res.message)
           triggerShake()
+        }
+      } else if (tab === "forgot") {
+        if (forgotStep === "email") {
+          const res = sendOtp(email)
+          setIsLoading(false)
+          if (res.success) {
+            setSuccessMsg(res.message)
+            setSimulatedOtp(res.otp || "")
+            setForgotStep("otp")
+          } else {
+            setErrorMsg(res.message)
+            triggerShake()
+          }
+        } else {
+          if (!otp.trim()) {
+            setErrorMsg("OTP Code is required")
+            setIsLoading(false)
+            triggerShake()
+            return
+          }
+          if (!newPassword.trim()) {
+            setErrorMsg("New password is required")
+            setIsLoading(false)
+            triggerShake()
+            return
+          }
+          const res = verifyOtpAndResetPassword(email, otp, newPassword)
+          setIsLoading(false)
+          if (res.success) {
+            setSuccessMsg(res.message)
+            setForgotStep("email")
+            setTab("login")
+          } else {
+            setErrorMsg(res.message)
+            triggerShake()
+          }
         }
       }
     }, 1200)
@@ -135,31 +180,47 @@ export function AuthPortal() {
           <Card className="border-border/60 bg-zinc-900/50 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl relative">
             <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
             
-            {/* Custom high-fidelity slide tabs selector */}
-            <div className="flex border-b border-border/20 bg-muted/10 p-1">
-              <button
-                type="button"
-                onClick={() => setTab("login")}
-                className={`w-1/2 py-3 rounded-2xl text-xs font-bold transition-all relative ${
-                  tab === "login" 
-                    ? "text-primary bg-zinc-950/80 border border-border/30 shadow-md font-extrabold" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab("signup")}
-                className={`w-1/2 py-3 rounded-2xl text-xs font-bold transition-all relative ${
-                  tab === "signup" 
-                    ? "text-primary bg-zinc-950/80 border border-border/30 shadow-md font-extrabold" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Create Account
-              </button>
-            </div>
+            {tab === "forgot" ? (
+              <div className="flex items-center justify-between border-b border-border/20 bg-muted/10 px-6 py-4">
+                <span className="text-xs font-extrabold text-primary">Password Recovery</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTab("login")
+                    setForgotStep("email")
+                  }}
+                  className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  ← Back to Login
+                </button>
+              </div>
+            ) : (
+              /* Custom high-fidelity slide tabs selector */
+              <div className="flex border-b border-border/20 bg-muted/10 p-1">
+                <button
+                  type="button"
+                  onClick={() => setTab("login")}
+                  className={`w-1/2 py-3 rounded-2xl text-xs font-bold transition-all relative ${
+                    tab === "login" 
+                      ? "text-primary bg-zinc-950/80 border border-border/30 shadow-md font-extrabold" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab("signup")}
+                  className={`w-1/2 py-3 rounded-2xl text-xs font-bold transition-all relative ${
+                    tab === "signup" 
+                      ? "text-primary bg-zinc-950/80 border border-border/30 shadow-md font-extrabold" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Create Account
+                </button>
+              </div>
+            )}
 
             <CardContent className="p-6 sm:p-8 space-y-6">
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -189,41 +250,102 @@ export function AuthPortal() {
                   )}
                 </AnimatePresence>
 
-                {/* Email Field */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="auth-email" className="text-xs font-semibold text-zinc-300">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="auth-email"
-                      type="email"
-                      placeholder="e.g. lokeswarpj4@gmail.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="pl-9 h-10 rounded-xl text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 bg-zinc-950/50"
-                    />
+                {/* Email Field (Hidden during OTP step for clarity) */}
+                {tab !== "forgot" || forgotStep === "email" ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="auth-email" className="text-xs font-semibold text-zinc-300">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="auth-email"
+                        type="email"
+                        placeholder="e.g. lokeswarpj4@gmail.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="pl-9 h-10 rounded-xl text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 bg-zinc-950/50"
+                      />
+                    </div>
                   </div>
-                </div>
+                ) : null}
+
+                {/* Forgot Step OTP Fields */}
+                {tab === "forgot" && forgotStep === "otp" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4"
+                  >
+                    <div className="p-3.5 border border-primary/20 bg-primary/5 rounded-2xl text-[10px] text-primary flex items-start gap-2.5">
+                      <Sparkles className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
+                      <div className="leading-tight">
+                        <span className="font-bold block">Simulated Email OTP Delivery</span>
+                        <span className="text-muted-foreground text-[9px] mt-0.5 block">We mocked the SMTP gateway. Copy recovery OTP code: <span className="font-mono font-black text-foreground bg-primary/15 px-1.5 py-0.5 rounded text-[10px]">{simulatedOtp}</span></span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="auth-otp" className="text-xs font-semibold text-zinc-300">OTP Code</Label>
+                      <div className="relative">
+                        <Sparkles className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="auth-otp"
+                          placeholder="e.g. 123456"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          required
+                          className="pl-9 h-10 rounded-xl text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 bg-zinc-950/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="auth-new-pw" className="text-xs font-semibold text-zinc-300">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="auth-new-pw"
+                          type="password"
+                          placeholder="••••••••••••"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                          className="pl-9 h-10 rounded-xl text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 bg-zinc-950/50"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Password Field */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="auth-pw" className="text-xs font-semibold text-zinc-300">Password</Label>
+                {tab !== "forgot" && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="auth-pw" className="text-xs font-semibold text-zinc-300">Password</Label>
+                      {tab === "login" && (
+                        <button
+                          type="button"
+                          onClick={() => setTab("forgot")}
+                          className="text-[10px] text-primary/70 hover:text-primary underline cursor-pointer transition-colors"
+                        >
+                          Forgot Password?
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="auth-pw"
+                        type="password"
+                        placeholder="••••••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="pl-9 h-10 rounded-xl text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 bg-zinc-950/50"
+                      />
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="auth-pw"
-                      type="password"
-                      placeholder="••••••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="pl-9 h-10 rounded-xl text-xs focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 bg-zinc-950/50"
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Status Messages */}
                 {errorMsg && (
@@ -265,7 +387,16 @@ export function AuthPortal() {
                     </>
                   ) : (
                     <>
-                      <span>{tab === "login" ? "Sign In" : "Register Workspace"}</span>
+                      <span>
+                        {tab === "login" 
+                          ? "Sign In" 
+                          : tab === "signup" 
+                          ? "Register Workspace" 
+                          : forgotStep === "email" 
+                          ? "Send Recovery OTP" 
+                          : "Reset Password"
+                        }
+                      </span>
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}

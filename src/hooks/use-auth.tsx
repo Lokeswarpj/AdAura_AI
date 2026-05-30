@@ -14,6 +14,8 @@ interface AuthContextType {
   login: (email: string, checkPassword: string) => { success: boolean; message: string }
   register: (name: string, email: string, checkPassword: string) => { success: boolean; message: string }
   logout: () => void
+  sendOtp: (email: string) => { success: boolean; message: string; otp?: string }
+  verifyOtpAndResetPassword: (email: string, otp: string, checkPassword: string) => { success: boolean; message: string }
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined)
@@ -130,6 +132,107 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("current_auth_session")
   }
 
+  const sendOtp = (email: string) => {
+    if (typeof window === "undefined") return { success: false, message: "Server error" }
+    
+    const lowerEmail = email.toLowerCase().trim()
+    const usersStr = localStorage.getItem("auth_registered_users")
+    let usersList = []
+
+    if (usersStr) {
+      try {
+        usersList = JSON.parse(usersStr)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    // Permit recovery for both registered users and default admin account
+    const userExists = usersList.some((u: any) => u.email === lowerEmail)
+    const isAdmin = lowerEmail === "lokeswarpj4@gmail.com"
+
+    if (!userExists && !isAdmin) {
+      return { success: false, message: "This email address is not registered" }
+    }
+
+    // Generate 6-digit OTP code
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString()
+    const otpSession = {
+      email: lowerEmail,
+      otp: generatedOtp,
+      expires: Date.now() + 5 * 60 * 1000 // 5 minutes expiration
+    }
+
+    localStorage.setItem(`auth_otp_${lowerEmail}`, JSON.stringify(otpSession))
+
+    return { 
+      success: true, 
+      message: `OTP sent successfully! (Simulated Email OTP Code: ${generatedOtp})`,
+      otp: generatedOtp
+    }
+  }
+
+  const verifyOtpAndResetPassword = (email: string, otp: string, checkPassword: string) => {
+    if (typeof window === "undefined") return { success: false, message: "Server error" }
+    
+    const lowerEmail = email.toLowerCase().trim()
+    const otpSessionStr = localStorage.getItem(`auth_otp_${lowerEmail}`)
+
+    if (!otpSessionStr) {
+      return { success: false, message: "No active password recovery session found. Please request a new OTP." }
+    }
+
+    try {
+      const otpSession = JSON.parse(otpSessionStr)
+      
+      if (otpSession.otp !== otp.trim()) {
+        return { success: false, message: "Invalid OTP code. Please verify the code and try again." }
+      }
+
+      if (Date.now() > otpSession.expires) {
+        return { success: false, message: "OTP has expired. Please request a new OTP." }
+      }
+
+      // OTP is valid! Reset password in registered list
+      const usersStr = localStorage.getItem("auth_registered_users")
+      let usersList = []
+
+      if (usersStr) {
+        try {
+          usersList = JSON.parse(usersStr)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+
+      const userIndex = usersList.findIndex((u: any) => u.email === lowerEmail)
+
+      if (userIndex !== -1) {
+        usersList[userIndex].password = checkPassword
+        localStorage.setItem("auth_registered_users", JSON.stringify(usersList))
+      } else if (lowerEmail === "lokeswarpj4@gmail.com") {
+        // Mock success for admin account that is not registered yet
+        const newUser = {
+          name: "Lokeswar PJ",
+          email: lowerEmail,
+          password: checkPassword,
+          avatar: "LP"
+        }
+        usersList.push(newUser)
+        localStorage.setItem("auth_registered_users", JSON.stringify(usersList))
+      } else {
+        return { success: false, message: "User account could not be found for password reset." }
+      }
+
+      // Clean up OTP session
+      localStorage.removeItem(`auth_otp_${lowerEmail}`)
+
+      return { success: true, message: "Password updated successfully! You can now log in with your new password." }
+    } catch (e) {
+      return { success: false, message: "Failed verifying session. Please try again." }
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -137,7 +240,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         register,
-        logout
+        logout,
+        sendOtp,
+        verifyOtpAndResetPassword
       }}
     >
       {children}
