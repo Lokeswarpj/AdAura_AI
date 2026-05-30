@@ -259,15 +259,18 @@
 }
 
 .animate-blob-1 {
-  animation: float-blob-1 25s infinite alternate ease-in-out;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .animate-blob-2 {
-  animation: float-blob-2 30s infinite alternate ease-in-out;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .animate-blob-3 {
-  animation: float-blob-3 28s infinite alternate ease-in-out;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 /* Highly Optimized Slow Vertical Grid Pan */

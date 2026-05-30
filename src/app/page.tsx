@@ -21,6 +21,7 @@ import { useIntegration } from "@/hooks/use-integration"
 export default function Dashboard() {
   const { connectedAccounts } = useIntegration()
   const [metrics, setMetrics] = React.useState<any>(null)
+  const [campaigns, setCampaigns] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const hasLinkedAccounts = connectedAccounts.length > 0
 
@@ -36,6 +37,7 @@ export default function Dashboard() {
         if (res.ok) {
           const data = await res.json()
           setMetrics(data.metrics || null)
+          setCampaigns(data.campaigns || [])
         }
       } catch (err) {
         console.error("Failed syncing ad metrics:", err)
@@ -157,12 +159,12 @@ export default function Dashboard() {
               <PerformanceChart />
             </div>
             <div className="lg:col-span-3 xl:col-span-1 h-full">
-              <InsightsPanel />
+              <InsightsPanel campaigns={campaigns} isLoading={isLoading} />
             </div>
           </div>
 
           <div className="pb-8">
-            <CampaignTable />
+            <CampaignTable campaigns={campaigns} isLoading={isLoading} />
           </div>
         </>
       )}

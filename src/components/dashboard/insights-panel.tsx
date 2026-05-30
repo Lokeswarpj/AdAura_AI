@@ -44,14 +44,18 @@ const mockInsights = [
   }
 ]
 
-export function InsightsPanel() {
+export function InsightsPanel({ campaigns: propCampaigns, isLoading: propIsLoading }: { campaigns?: any[], isLoading?: boolean }) {
   const { connectedAccounts } = useIntegration()
-  const [campaigns, setCampaigns] = React.useState<any[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [internalCampaigns, setInternalCampaigns] = React.useState<any[]>([])
+  const [internalIsLoading, setInternalIsLoading] = React.useState(true)
+
+  const campaigns = propCampaigns ?? internalCampaigns
+  const isLoading = propIsLoading ?? internalIsLoading
 
   React.useEffect(() => {
+    if (propCampaigns !== undefined) return
     async function syncInsights() {
-      setIsLoading(true)
+      setInternalIsLoading(true)
       try {
         const res = await fetch("/api/ads", {
           method: "POST",
@@ -60,16 +64,16 @@ export function InsightsPanel() {
         })
         if (res.ok) {
           const data = await res.json()
-          setCampaigns(data.campaigns || [])
+          setInternalCampaigns(data.campaigns || [])
         }
       } catch (err) {
         console.error("Failed fetching live insights:", err)
       } finally {
-        setIsLoading(false)
+        setInternalIsLoading(false)
       }
     }
     syncInsights()
-  }, [connectedAccounts])
+  }, [connectedAccounts, propCampaigns])
 
   const generatedInsights = campaigns.map((c) => {
     let title = ""

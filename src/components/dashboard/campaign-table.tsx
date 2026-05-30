@@ -78,10 +78,14 @@ const mockCampaigns = [
   },
 ]
 
-export function CampaignTable() {
+export function CampaignTable({ campaigns: propCampaigns, isLoading: propIsLoading }: { campaigns?: any[], isLoading?: boolean }) {
   const { connectedAccounts } = useIntegration()
-  const [campaigns, setCampaigns] = React.useState<any[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
+  const [internalCampaigns, setInternalCampaigns] = React.useState<any[]>([])
+  const [internalIsLoading, setInternalIsLoading] = React.useState(true)
+
+  const campaigns = propCampaigns ?? internalCampaigns
+  const isLoading = propIsLoading ?? internalIsLoading
+
   const [sortColumn, setSortColumn] = React.useState<string>("spend")
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("desc")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -89,8 +93,9 @@ export function CampaignTable() {
   const [isAuditOpen, setIsAuditOpen] = React.useState(false)
 
   React.useEffect(() => {
+    if (propCampaigns !== undefined) return
     async function syncCampaigns() {
-      setIsLoading(true)
+      setInternalIsLoading(true)
       try {
         const res = await fetch("/api/ads", {
           method: "POST",
@@ -99,16 +104,16 @@ export function CampaignTable() {
         })
         if (res.ok) {
           const data = await res.json()
-          setCampaigns(data.campaigns || [])
+          setInternalCampaigns(data.campaigns || [])
         }
       } catch (err) {
         console.error("Failed fetching live campaigns:", err)
       } finally {
-        setIsLoading(false)
+        setInternalIsLoading(false)
       }
     }
     syncCampaigns()
-  }, [connectedAccounts])
+  }, [connectedAccounts, propCampaigns])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
