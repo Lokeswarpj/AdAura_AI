@@ -19,7 +19,9 @@ import {
 } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const chartData = [
+import { useIntegration } from "@/hooks/use-integration"
+
+const chartDataDemo = [
   { date: "May 01", spend: 1200, roas: 2.4, ctr: 1.2 },
   { date: "May 02", spend: 1350, roas: 2.6, ctr: 1.3 },
   { date: "May 03", spend: 1100, roas: 2.2, ctr: 1.1 },
@@ -34,6 +36,23 @@ const chartData = [
   { date: "May 12", spend: 2500, roas: 4.1, ctr: 1.9 },
   { date: "May 13", spend: 2800, roas: 4.5, ctr: 2.1 },
   { date: "May 14", spend: 3100, roas: 4.8, ctr: 2.3 },
+]
+
+const chartDataLive = [
+  { date: "May 01", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 02", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 03", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 04", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 05", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 06", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 07", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 08", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 09", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 10", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 11", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 12", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 13", spend: 0, roas: 0, ctr: 0 },
+  { date: "May 14", spend: 0, roas: 0, ctr: 0 },
 ]
 
 const chartConfig = {
@@ -53,6 +72,7 @@ const chartConfig = {
 
 export function PerformanceChart() {
   const [activeMetric, setActiveMetric] = React.useState<"spend" | "roas" | "ctr">("spend")
+  const displayChartData = chartDataLive
 
   return (
     <motion.div
@@ -60,7 +80,7 @@ export function PerformanceChart() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <Card className="border-border/50 bg-card/50 backdrop-blur-xl">
+      <Card className="glass-panel glowing-border-purple border-none">
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="grid gap-1">
             <CardTitle>Performance Overview</CardTitle>
@@ -79,7 +99,7 @@ export function PerformanceChart() {
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="min-h-[300px] w-full mt-4">
-            <AreaChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12 }}>
+            <AreaChart accessibilityLayer data={displayChartData} margin={{ left: 12, right: 12 }}>
               <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="date"

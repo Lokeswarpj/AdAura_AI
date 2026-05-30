@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { TopNav } from "@/components/layout/top-nav";
+import { ClientLayout } from "@/components/layout/client-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Analyst | Meta Ads Dashboard",
-  description: "Modern AI-powered Meta Ads Analytics Dashboard SaaS web app",
+  title: "AdAura AI | Unified Ad Analytics & Optimization",
+  description: "Production-ready AI-powered Meta & Google Ads Analytics Dashboard",
 };
 
 export default function RootLayout({
@@ -29,25 +25,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col overflow-hidden">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <TooltipProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <div className="flex flex-col w-full h-screen overflow-hidden">
-                <TopNav />
-                <main className="flex-1 overflow-y-auto bg-transparent p-4 sm:p-6 lg:p-8">
-                  {children}
-                </main>
-              </div>
-            </SidebarProvider>
-          </TooltipProvider>
-        </ThemeProvider>
+      <body className="min-h-full flex flex-col overflow-hidden relative">
+        {/* Dynamic, Ultra-Premium TechSummit 2032 Background */}
+        <div className="pointer-events-none fixed inset-0 z-[-1] select-none overflow-hidden bg-[oklch(0.06_0.01_290)]">
+          {/* Highly optimized slow vertical scanning developer grid */}
+          <div className="absolute inset-0 bg-grid-pan opacity-[0.55]" />
+          
+          {/* Textured Microscopic Matte Noise Layer */}
+          <div className="absolute inset-0 bg-grain mix-blend-overlay" />
+          
+          {/* Floating Neon Mesh Aura Blobs - EXACTLY matching the TechSummit 2032 reference image */}
+          {/* Left Side: Massive, Rich Violet/Indigo Aura Glow */}
+          <div className="animate-blob-1 absolute top-[10%] -left-[20%] h-[850px] w-[850px] rounded-full bg-violet-600/32 blur-[130px] mix-blend-screen opacity-95" />
+          
+          {/* Right Bottom: Subtle, Warm Rose/Pink Aura Glow */}
+          <div className="animate-blob-3 absolute -bottom-[15%] -right-[15%] h-[800px] w-[800px] rounded-full bg-rose-500/25 blur-[120px] mix-blend-screen opacity-90" />
+          
+          {/* Center ambient contrast balancer */}
+          <div className="absolute top-[35%] left-[25%] h-[400px] w-[500px] rounded-full bg-purple-500/8 blur-[110px]" />
+        </div>
+
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

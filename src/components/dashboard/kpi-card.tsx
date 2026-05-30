@@ -25,7 +25,7 @@ export function KPICard({ title, value, change, trend, icon: Icon, data, delay =
       transition={{ duration: 0.4, delay }}
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-xl">
+      <Card className="overflow-hidden glass-panel glass-panel-hover glowing-border-purple border-none">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
           <Icon className="h-4 w-4 text-muted-foreground" />
@@ -33,7 +33,7 @@ export function KPICard({ title, value, change, trend, icon: Icon, data, delay =
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold">{value}</div>
+              <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-300 to-pink-400 glow-text">{value}</div>
               <p className="text-xs flex items-center mt-1">
                 {trend === "up" ? (
                   <span className="text-emerald-500 flex items-center font-medium">

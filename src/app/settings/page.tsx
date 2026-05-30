@@ -32,6 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { useTheme } from "next-themes"
+import { useIntegration } from "@/hooks/use-integration"
+
 
 // Initial Team roster
 const initialTeam = [
@@ -49,6 +51,8 @@ const initialInvoices = [
 
 export default function SettingsPage() {
   const { setTheme, theme } = useTheme()
+  const { connectedAccounts, openConnectModal, disconnectAccount } = useIntegration()
+
 
   // Slack Webhook Integration state
   const [slackWebhook, setSlackWebhook] = React.useState("https://hooks.slack.com/services/YOUR_WORKSPACE_ID/YOUR_CHANNEL_ID/YOUR_TOKEN")
@@ -126,49 +130,103 @@ export default function SettingsPage() {
 
         {/* ==================== INTEGRATIONS TAB ==================== */}
         <TabsContent value="integrations">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="border-border/50 bg-card/50 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle>Meta Ads Integration</CardTitle>
-                <CardDescription>Connect your Meta Business account to sync campaigns and insights.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-2xl bg-background/50">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                      <svg viewBox="0 0 36 36" className="fill-current text-white h-6 w-6" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1.1-6.1h-2.5v-4h3.6v-2.8c0-3.6 2.2-5.5 5.3-5.5 1.5 0 2.8.1 3.2.2v3.7h-2.2c-1.7 0-2 .8-2 2v2.4h4.1l-.5 4h-3.6v8.1c-1.2.2-2.5.3-3.8.3s-2.6-.1-3.8-.3v-8.1h-3.5v-4h3.5V18c0-3.5 2.1-5.4 5.2-5.4 1.5 0 2.8.1 3.2.2v3.7h-2.2c-1.7 0-2 .8-2 2v2.4h3.9l-.5 4h-3.4v6.1z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">Meta Business Manager</h4>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-500" /> Connected as Acme Corp
-                      </p>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="text-destructive border-destructive/20 hover:bg-destructive/10 cursor-pointer shrink-0">Disconnect</Button>
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="grid gap-6 md:grid-cols-2"
+          >
+            {[
+              {
+                id: "meta" as const,
+                name: "Meta Ads Manager",
+                desc: "Connect Meta Business to analyze Facebook & Instagram campaigns.",
+                bg: "bg-blue-600",
+                logo: (
+                  <svg viewBox="0 0 36 36" className="fill-current text-white h-5 w-5" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 35.8C6.5 34.3 0 26.9 0 18 0 8.1 8.1 0 18 0s18 8.1 18 18c0 8.9-6.5 16.3-15 17.8l-1.1-6.1h-2.5v-4h3.6v-2.8c0-3.6 2.2-5.5 5.3-5.5 1.5 0 2.8.1 3.2.2v3.7h-2.2c-1.7 0-2 .8-2 2v2.4h4.1l-.5 4h-3.6v8.1c-1.2.2-2.5.3-3.8.3s-2.6-.1-3.8-.3v-8.1h-3.5v-4h3.5V18c0-3.5 2.1-5.4 5.2-5.4 1.5 0 2.8.1 3.2.2v3.7h-2.2c-1.7 0-2 .8-2 2v2.4h3.9l-.5 4h-3.4v6.1z"/>
+                  </svg>
+                )
+              },
+              {
+                id: "google" as const,
+                name: "Google Ads",
+                desc: "Sync Search, Performance Max, and YouTube campaigns with AI auditing.",
+                bg: "bg-gradient-to-r from-red-500 via-yellow-500 to-green-500",
+                logo: (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#FFFFFF"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#FFFFFF"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FFFFFF"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#FFFFFF"/>
+                  </svg>
+                )
+              },
+              {
+                id: "linkedin" as const,
+                name: "LinkedIn Campaign Manager",
+                desc: "Sync B2B Enterprise leads and executive branding campaigns.",
+                bg: "bg-blue-700",
+                logo: (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current text-white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                )
+              }
+            ].map(network => {
+              const account = connectedAccounts.find(a => a.platform === network.id)
+              const isConnected = !!account
 
-                <div className="space-y-4 pt-4 border-t">
-                  <h4 className="text-sm font-semibold">Sync Syncing Settings</h4>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="auto-sync" className="flex flex-col gap-1 cursor-pointer">
-                      <span>Auto-sync metrics</span>
-                      <span className="text-xs text-muted-foreground font-normal">Pull latest data every 15 minutes</span>
-                    </Label>
-                    <Switch id="auto-sync" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="ai-analysis" className="flex flex-col gap-1 cursor-pointer">
-                      <span>Automated AI Analysis</span>
-                      <span className="text-xs text-muted-foreground font-normal">Allow AI Analyst to score campaigns and creatives</span>
-                    </Label>
-                    <Switch id="ai-analysis" defaultChecked />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              return (
+                <Card key={network.id} className="border-border/50 bg-card/50 backdrop-blur-xl flex flex-col justify-between">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl ${network.bg} flex items-center justify-center shrink-0 shadow-md`}>
+                        {network.logo}
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">{network.name}</CardTitle>
+                        <CardDescription className="text-xs mt-0.5">{network.desc}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-2xl ${
+                      isConnected ? "bg-emerald-500/5 border-emerald-500/20" : "bg-background/50 border-border/30"
+                    }`}>
+                      <div>
+                        <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">Status</span>
+                        {isConnected ? (
+                          <p className="text-xs text-foreground font-bold flex items-center gap-1 mt-1">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Synced: {account.accountName}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground font-medium flex items-center gap-1 mt-1">
+                            <span className="h-2 w-2 rounded-full bg-muted-foreground/30" /> Offline / Disconnected
+                          </p>
+                        )}
+                      </div>
+                      
+                      {isConnected ? (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => disconnectAccount(network.id)}
+                          className="text-destructive border-destructive/20 hover:bg-destructive/10 cursor-pointer text-xs h-9 shrink-0"
+                        >
+                          Disconnect
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => openConnectModal(network.id)}
+                          className="text-xs h-9 shrink-0 font-bold cursor-pointer"
+                        >
+                          Connect Account
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </motion.div>
         </TabsContent>
 

@@ -11,7 +11,8 @@ import {
   Image as ImageIcon,
   FileText,
   PieChart,
-  Megaphone
+  Megaphone,
+  LogOut
 } from "lucide-react"
 
 import {
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 
 const items = [
   {
@@ -78,15 +80,19 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { currentUser, logout } = useAuth()
 
   return (
     <Sidebar className="border-r border-border bg-sidebar">
-      <SidebarHeader className="p-4 flex flex-row items-center gap-2">
-        <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <PieChart className="size-4" />
+      <SidebarHeader className="p-4 flex flex-row items-center gap-2.5">
+        <div className="flex aspect-square size-8 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 to-pink-500 text-white shadow-lg shadow-violet-500/20">
+          <svg viewBox="0 0 24 24" className="size-5 fill-none stroke-current stroke-[2.5]" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 22h4l3-6h6l3 6h4L12 2zm-1.5 11L12 9.5l1.5 3.5h-3z" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="13" r="8" className="stroke-pink-300 opacity-50" />
+          </svg>
         </div>
         <div className="flex flex-col gap-0.5 leading-none">
-          <span className="font-semibold text-lg tracking-tight">AI Analyst</span>
+          <span className="font-black text-lg tracking-tight bg-gradient-to-r from-violet-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">AdAura AI</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -106,7 +112,28 @@ export function AppSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 space-y-4">
+        {currentUser && (
+          <div className="flex items-center justify-between gap-3 p-2 bg-muted/20 border border-border/20 rounded-xl overflow-hidden">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary text-[11px] shrink-0">
+                {currentUser.avatar}
+              </div>
+              <div className="min-w-0">
+                <span className="font-semibold text-[11px] text-foreground block truncate leading-tight">{currentUser.name}</span>
+                <span className="text-[9px] text-muted-foreground block truncate leading-tight mt-0.5">{currentUser.email}</span>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              className="p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-lg text-muted-foreground transition-colors cursor-pointer shrink-0"
+              title="Logout"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+
         <div className="rounded-xl bg-card p-4 text-card-foreground shadow-sm border">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="size-4 text-primary" />

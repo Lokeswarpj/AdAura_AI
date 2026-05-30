@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useIntegration } from "@/hooks/use-integration"
 import { CampaignAuditDrawer } from "./campaign-audit-drawer"
 
 const mockCampaigns = [
@@ -78,11 +79,36 @@ const mockCampaigns = [
 ]
 
 export function CampaignTable() {
+  const { connectedAccounts } = useIntegration()
+  const [campaigns, setCampaigns] = React.useState<any[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
   const [sortColumn, setSortColumn] = React.useState<string>("spend")
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("desc")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedCampaign, setSelectedCampaign] = React.useState<any | null>(null)
   const [isAuditOpen, setIsAuditOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    async function syncCampaigns() {
+      setIsLoading(true)
+      try {
+        const res = await fetch("/api/ads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ connectedAccounts, demoMode: false })
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setCampaigns(data.campaigns || [])
+        }
+      } catch (err) {
+        console.error("Failed fetching live campaigns:", err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    syncCampaigns()
+  }, [connectedAccounts])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -93,7 +119,7 @@ export function CampaignTable() {
     }
   }
 
-  const filteredData = mockCampaigns.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredData = campaigns.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const sortedData = [...filteredData].sort((a, b) => {
     const aValue = a[sortColumn as keyof typeof a]
@@ -110,7 +136,7 @@ export function CampaignTable() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
-      <Card className="border-border/50 bg-card/50 backdrop-blur-xl">
+      <Card className="glass-panel glowing-border-purple border-none">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -170,84 +196,110 @@ export function CampaignTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.map((campaign) => (
-                  <TableRow key={campaign.id} className="group hover:bg-muted/50 transition-colors">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => {
-                            setSelectedCampaign(campaign)
-                            setIsAuditOpen(true)
-                          }}
-                          className="hover:underline hover:text-primary transition-colors text-left font-semibold cursor-pointer"
-                        >
-                          {campaign.name}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedCampaign(campaign)
-                            setIsAuditOpen(true)
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-primary/10 rounded-md text-primary cursor-pointer"
-                          title="Ask AI Analyst"
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                        </button>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-48 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <motion.div 
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                          className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full"
+                        />
+                        <p className="text-xs text-muted-foreground">Syncing live campaign inventory...</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        campaign.status === "active" ? "default" :
-                        campaign.status === "learning" ? "secondary" : "destructive"
-                      } className={
-                        campaign.status === "active" ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20" : ""
-                      }>
-                        {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">${campaign.spend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      <span className={campaign.roas > 3 ? "text-emerald-500" : campaign.roas < 2 ? "text-destructive" : ""}>
-                        {campaign.roas.toFixed(2)}x
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">{campaign.ctr.toFixed(2)}%</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full ${campaign.aiScore > 80 ? 'bg-emerald-500' : campaign.aiScore > 60 ? 'bg-yellow-500' : 'bg-destructive'}`} 
-                            style={{ width: `${campaign.aiScore}%` }} 
-                          />
-                        </div>
-                        <span className="font-semibold w-6 text-right">{campaign.aiScore}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedCampaign(campaign)
-                            setIsAuditOpen(true)
-                          }}>View details</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedCampaign(campaign)
-                            setIsAuditOpen(true)
-                          }}>Ask AI about this</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className={campaign.status === 'active' ? "text-destructive" : "text-emerald-500"}>
-                            {campaign.status === 'active' ? "Pause campaign" : "Enable campaign"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : sortedData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-48 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <p className="text-sm font-semibold text-muted-foreground">No active campaigns found</p>
+                        <p className="text-xs text-muted-foreground max-w-sm">
+                          Your linked ad channel does not have any active campaigns. Once you launch active ad sets on your linked ad platform, their metrics and AI score audits will populate here in real-time.
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedData.map((campaign) => (
+                    <TableRow key={campaign.id} className="group hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => {
+                              setSelectedCampaign(campaign)
+                              setIsAuditOpen(true)
+                            }}
+                            className="hover:underline hover:text-primary transition-colors text-left font-semibold cursor-pointer"
+                          >
+                            {campaign.name}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedCampaign(campaign)
+                              setIsAuditOpen(true)
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-primary/10 rounded-md text-primary cursor-pointer"
+                            title="Ask AI Analyst"
+                          >
+                            <Sparkles className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          campaign.status === "active" ? "default" :
+                          campaign.status === "learning" ? "secondary" : "destructive"
+                        } className={
+                          campaign.status === "active" ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20" : ""
+                        }>
+                          {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">${campaign.spend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        <span className={campaign.roas > 3 ? "text-emerald-500" : campaign.roas < 2 ? "text-destructive" : ""}>
+                          {campaign.roas.toFixed(2)}x
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">{campaign.ctr.toFixed(2)}%</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full ${campaign.aiScore > 80 ? 'bg-emerald-500' : campaign.aiScore > 60 ? 'bg-yellow-500' : 'bg-destructive'}`} 
+                              style={{ width: `${campaign.aiScore}%` }} 
+                            />
+                          </div>
+                          <span className="font-semibold w-6 text-right">{campaign.aiScore}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedCampaign(campaign)
+                              setIsAuditOpen(true)
+                            }}>View details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedCampaign(campaign)
+                              setIsAuditOpen(true)
+                            }}>Ask AI about this</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className={campaign.status === 'active' ? "text-destructive" : "text-emerald-500"}>
+                              {campaign.status === 'active' ? "Pause campaign" : "Enable campaign"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
